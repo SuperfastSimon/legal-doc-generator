@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Doc Generator — Instant AI Legal Documents</title>
+<style>
+  :root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a42;--accent:#3b82f6;--accent2:#06b6d4;--success:#00e676;--warn:#ffab00;--error:#ff5252;--text:#e8e8f0;--text2:#9090b0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:center;gap:14px;}
+  .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .logo-text{font-size:18px;font-weight:800;} .logo-sub{font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;}
+  .back-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:8px 16px;border-radius:8px;font-size:13px;text-decoration:none;transition:all 0.2s;}
+  .back-btn:hover{color:var(--text);border-color:var(--accent);}
+  main{padding:60px 32px;max-width:900px;margin:0 auto;}
+  .hero{text-align:center;margin-bottom:56px;}
+  .hero h1{font-size:42px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;line-height:1.1;}
+  .hero p{color:var(--text2);font-size:16px;max-width:540px;margin:0 auto;}
+  .trust-bar{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:20px;}
+  .trust-item{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;}
+  .trust-item span{color:var(--success);}
+  .doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:40px;}
+  .doc-card{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;}
+  .doc-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .doc-card.selected{border-color:var(--accent);background:rgba(59,130,246,0.08);box-shadow:0 0 20px rgba(59,130,246,0.2);}
+  .doc-icon{font-size:30px;margin-bottom:10px;}
+  .doc-name{font-size:13px;font-weight:700;margin-bottom:4px;}
+  .doc-price{font-size:20px;font-weight:800;color:var(--accent);margin-bottom:4px;}
+  .doc-desc{font-size:11px;color:var(--text2);}
+  .form-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:32px;}
+  .form-section h3{font-size:15px;font-weight:700;margin-bottom:20px;color:var(--text2);}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+  .field input,.field textarea,.field select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.2s;}
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);}
+  .field textarea{resize:vertical;font-family:inherit;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .generate-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:16px;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;transition:all 0.2s;margin-top:8px;}
+  .generate-btn:hover{opacity:0.9;transform:translateY(-1px);}
+  .generate-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .result-section{background:var(--surface);border:1px solid rgba(0,230,118,0.3);border-radius:16px;padding:32px;margin-bottom:32px;display:none;}
+  .result-section.visible{display:block;}
+  .result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .result-title{font-size:18px;font-weight:700;color:var(--success);}
+  .result-actions{display:flex;gap:8px;}
+  .btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:all 0.2s;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-copy{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .doc-output{background:var(--surface2);border-radius:10px;padding:24px;font-family:'Courier New',monospace;font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--text);max-height:480px;overflow-y:auto;border:1px solid var(--border);}
+  .status-bar{background:var(--surface2);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--text2);margin-bottom:16px;display:none;}
+  .status-bar.visible{display:flex;align-items:center;gap:10px;}
+  .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .pipeline-note{background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--text2);margin-top:16px;display:flex;align-items:center;gap:10px;}
+  .section-label{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+  @media(max-width:640px){.hero h1{font-size:28px;}.row{grid-template-columns:1fr;}.doc-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚖️</div>
+    <div>
+      <div class="logo-text">Legal Doc Generator</div>
+      <div class="logo-sub">AI-Powered Legal Documents</div>
+    </div>
+  </div>
+  <a href="https://superfastsimon.github.io/saikou-platform-dashboard/" class="back-btn">← Platform Hub</a>
+</header>
+<main>
+  <div class="hero">
+    <h1>Legal Documents<br>in 30 Seconds</h1>
+    <p>Professional AI-generated legal documents. No lawyer needed, no waiting — instant download.</p>
+    <div class="trust-bar">
+      <div class="trust-item"><span>✓</span> GDPR Compliant</div>
+      <div class="trust-item"><span>✓</span> Instant Delivery</div>
+      <div class="trust-item"><span>✓</span> AI-Generated</div>
+      <div class="trust-item"><span>✓</span> Customizable</div>
+    </div>
+  </div>
+
+  <div class="section-label">Choose Your Document</div>
+  <div class="doc-grid">
+    <div class="doc-card selected" onclick="selectDoc('nda','Non-Disclosure Agreement',5.99,this)">
+      <div class="doc-icon">🤫</div>
+      <div class="doc-name">NDA</div>
+      <div class="doc-price">€5.99</div>
+      <div class="doc-desc">Protect confidential info</div>
+    </div>
+    <div class="doc-card" onclick="selectDoc('freelance','Freelance Contract',7.99,this)">
+      <div class="doc-icon">🤝</div>
+      <div class="doc-name">Freelance</div>
+      <div class="doc-price">€7.99</div>
+      <div class="doc-desc">Service agreement</div>
+    </div>
+    <div class="doc-card" onclick="selectDoc('privacy','Privacy Policy',9.99,this)">
+      <div class="doc-icon">🔒</div>
+      <div class="doc-name">Privacy Policy</div>
+      <div class="doc-price">€9.99</div>
+      <div class="doc-desc">GDPR & CCPA ready</div>
+    </div>
+    <div class="doc-card" onclick="selectDoc('tos','Terms of Service',9.99,this)">
+      <div class="doc-icon">📋</div>
+      <div class="doc-name">Terms of Service</div>
+      <div class="doc-price">€9.99</div>
+      <div class="doc-desc">Full ToS document</div>
+    </div>
+    <div class="doc-card" onclick="selectDoc('llc','LLC Operating Agreement',14.99,this)">
+      <div class="doc-icon">🏢</div>
+      <div class="doc-name">LLC Agreement</div>
+      <div class="doc-price">€14.99</div>
+      <div class="doc-desc">Company governance</div>
+    </div>
+  </div>
+
+  <div class="section-label">Your Details</div>
+  <div class="form-section">
+    <div class="row">
+      <div class="field">
+        <label>Business / Your Name</label>
+        <input type="text" id="businessName" placeholder="e.g. Saikou.tech BV" />
+      </div>
+      <div class="field">
+        <label>Counterparty Name (optional)</label>
+        <input type="text" id="counterparty" placeholder="e.g. Client Name or Company" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Additional Instructions (optional)</label>
+      <textarea id="extraInstructions" rows="3" placeholder="e.g. Governed by Dutch law, include non-compete clause for 1 year, add €50k penalty clause..."></textarea>
+    </div>
+    <div class="status-bar" id="statusBar">
+      <div class="spinner"></div>
+      <span id="statusText">Generating your document via Genesis Protocol...</span>
+    </div>
+    <button class="generate-btn" id="generateBtn" onclick="generateDoc()">
+      ⚡ Generate My NDA — €5.99
+    </button>
+    <div class="pipeline-note">
+      🧬 Powered by <strong style="color:var(--accent)">Genesis Protocol</strong> — your document is generated by the AI agent pipeline and delivered instantly.
+      <a href="https://superfastsimon.github.io/genesis-protocol-dashboard/" style="color:var(--accent);margin-left:4px;font-size:11px;">View pipeline →</a>
+    </div>
+  </div>
+
+  <div class="result-section" id="resultSection">
+    <div class="result-header">
+      <div class="result-title">✅ Your Document is Ready</div>
+      <div class="result-actions">
+        <button class="btn btn-copy" onclick="copyDoc()">Copy</button>
+        <button class="btn" onclick="downloadDoc()">Download .txt</button>
+      </div>
+    </div>
+    <div class="doc-output" id="docOutput"></div>
+  </div>
+</main>
+
+<script>
+const PROXY = 'https://genesis-protocol-proxy.onrender.com';
+const BOSS_AGENT = 'd5f31b2a-d683-4748-a0e3-acbb9ffde653';
+
+const TEMPLATES = {
+  nda: (biz, cp, extra) => `NON-DISCLOSURE AGREEMENT
+
+This Non-Disclosure Agreement ("Agreement") is entered into as of ${today()} between:
+Disclosing Party: ${biz}
+Receiving Party: ${cp || '[Receiving Party]'}
+
+1. CONFIDENTIAL INFORMATION
+The Receiving Party agrees to hold in strict confidence all proprietary information, trade secrets, and confidential data disclosed by the Disclosing Party.
+
+2. OBLIGATIONS
+The Receiving Party shall not disclose, publish, copy, or use Confidential Information for any purpose other than evaluating a potential business relationship, without prior written consent.
+
+3. EXCLUSIONS
+Obligations do not apply to information that: (a) is or becomes publicly known through no breach; (b) was rightfully known before disclosure; (c) is independently developed without use of Confidential Information.
+
+4. TERM
+This Agreement remains in effect for two (2) years from the date of execution.
+
+5. GOVERNING LAW
+This Agreement shall be governed by the laws of the Netherlands / applicable jurisdiction.
+${extra ? '\n6. ADDITIONAL TERMS\n' + extra : ''}
+
+DISCLOSING PARTY: _____________________  DATE: ____________
+RECEIVING PARTY:  _____________________  DATE: ____________`,
+
+  freelance: (biz, cp, extra) => `FREELANCE SERVICE AGREEMENT
+
+This Agreement is entered into as of ${today()} between:
+Client: ${cp || '[Client Name]'}
+Service Provider: ${biz}
+
+1. SERVICES
+Service Provider agrees to deliver the mutually agreed services as specified in any attached Statement of Work.
+
+2. PAYMENT
+Client agrees to pay the agreed fee upon milestone completion. Late payments incur 2% monthly interest.
+
+3. INTELLECTUAL PROPERTY
+Upon full payment, all deliverables become the exclusive property of the Client.
+
+4. INDEPENDENT CONTRACTOR
+Service Provider is an independent contractor. Nothing herein creates an employment relationship.
+
+5. CONFIDENTIALITY
+Both parties agree to keep project details confidential during and for 2 years after the engagement.
+
+6. TERMINATION
+Either party may terminate with 14 days written notice. Client pays for work completed to termination date.
+${extra ? '\n7. ADDITIONAL TERMS\n' + extra : ''}
+
+CLIENT SIGNATURE: _____________________  DATE: ____________
+PROVIDER SIGNATURE: ___________________  DATE: ____________`,
+
+  privacy: (biz, cp, extra) => `PRIVACY POLICY
+
+Last updated: ${today()}
+This Privacy Policy describes how ${biz} ("we", "us") collects, uses, and shares personal data.
+
+1. DATA WE COLLECT
+- Information you provide: name, email, payment details
+- Usage data: pages visited, time spent, device info
+- Cookies and tracking technologies
+
+2. HOW WE USE YOUR DATA
+- To provide and improve our services
+- To process transactions and send receipts
+- To send service updates (opt-out available)
+- To comply with legal obligations
+
+3. DATA SHARING
+We do not sell personal data. We share only with: payment processors (Stripe), hosting providers, and when required by law.
+
+4. YOUR RIGHTS (GDPR / CCPA)
+You have the right to: access, correct, delete, restrict, and port your data.
+To exercise rights, contact: privacy@${biz.toLowerCase().replace(/\s+/g,'')||'yourbusiness'}.com
+
+5. DATA RETENTION
+We retain data for the duration of your account plus 3 years, or as required by law.
+
+6. COOKIES
+We use essential and analytics cookies. You may disable non-essential cookies in your browser settings.
+${extra ? '\n7. ADDITIONAL TERMS\n' + extra : ''}
+
+Contact: ${biz}`,
+
+  tos: (biz, cp, extra) => `TERMS OF SERVICE
+
+Last updated: ${today()}
+By using ${biz}'s services, you agree to these Terms.
+
+1. ACCEPTANCE
+By accessing our services you confirm you are 18+ and accept these terms in full.
+
+2. USE OF SERVICE
+You agree to use the service lawfully. Prohibited: illegal activity, spam, reverse engineering, unauthorized access.
+
+3. INTELLECTUAL PROPERTY
+All content, trademarks, and materials are the property of ${biz}. Unauthorized reproduction is prohibited.
+
+4. PAYMENT & REFUNDS
+Payments are processed via Stripe. Refunds issued within 14 days for non-delivered digital products.
+
+5. LIMITATION OF LIABILITY
+${biz} is not liable for indirect, incidental, or consequential damages. Maximum liability is the amount paid in the last 30 days.
+
+6. TERMINATION
+We reserve the right to suspend access for violation of these terms without notice.
+
+7. GOVERNING LAW
+These terms are governed by the laws of the Netherlands.
+${extra ? '\n8. ADDITIONAL TERMS\n' + extra : ''}
+
+Contact: legal@${biz.toLowerCase().replace(/\s+/g,'')||'yourbusiness'}.com`,
+
+  llc: (biz, cp, extra) => `LLC OPERATING AGREEMENT
+
+${biz}, LLC
+Operating Agreement — Dated: ${today()}
+
+ARTICLE I — ORGANIZATION
+The Members hereby form a Limited Liability Company under the name "${biz}, LLC" pursuant to applicable law.
+
+ARTICLE II — PRINCIPAL OFFICE
+The LLC's principal place of business shall be as designated by the Members.
+
+ARTICLE III — MANAGEMENT
+The LLC shall be Member-managed. Decisions require majority vote by ownership percentage, except dissolution which requires unanimous consent.
+
+ARTICLE IV — CAPITAL CONTRIBUTIONS
+Members shall contribute capital as agreed and recorded in the company books. Additional contributions require unanimous consent.
+
+ARTICLE V — PROFIT & LOSS DISTRIBUTION
+Profits and losses shall be allocated in proportion to membership interests, distributed at least annually.
+
+ARTICLE VI — TRANSFERS OF INTEREST
+No Member may sell, assign, or transfer their interest without written consent of all other Members.
+
+ARTICLE VII — DISSOLUTION
+The LLC may be dissolved by: unanimous written agreement, judicial dissolution, or as required by law.
+
+ARTICLE VIII — INDEMNIFICATION
+The LLC shall indemnify Members and Managers against claims arising from company operations, except for gross negligence.
+${extra ? '\nARTICLE IX — ADDITIONAL TERMS\n' + extra : ''}
+
+MEMBER SIGNATURE: _____________________  OWNERSHIP: ______%  DATE: ____________`
+};
+
+function today() {
+  return new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'long',year:'numeric'});
+}
+
+let currentDoc = 'nda', currentName = 'NDA', currentPrice = 5.99;
+
+function selectDoc(type, name, price, el) {
+  currentDoc = type; currentName = name; currentPrice = price;
+  document.querySelectorAll('.doc-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('generateBtn').textContent = `⚡ Generate My ${name} — €${price.toFixed(2)}`;
+}
+
+async function generateDoc() {
+  const biz = document.getElementById('businessName').value.trim() || 'Your Business';
+  const cp  = document.getElementById('counterparty').value.trim();
+  const extra = document.getElementById('extraInstructions').value.trim();
+  const btn = document.getElementById('generateBtn');
+  const statusBar = document.getElementById('statusBar');
+  const statusText = document.getElementById('statusText');
+
+  btn.disabled = true;
+  statusBar.classList.add('visible');
+  statusText.textContent = 'Sending to Genesis Protocol pipeline...';
+
+  // Try to trigger Boss Agent via proxy, fall back to local template
+  let docContent = null;
+  try {
+    statusText.textContent = 'Waiting for AI agent response...';
+    const task = `Generate a professional ${currentName} for: ${biz}${cp ? ' and ' + cp : ''}. ${extra || ''}`.trim();
+    const resp = await fetch(`${PROXY}/agents/${BOSS_AGENT}/run`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ task, input: { doc_type: currentDoc, business_name: biz, counterparty: cp, extra_instructions: extra } })
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const output = data.output || data.result || data.response || '';
+      if (output && output.length > 50) docContent = output;
+    }
+  } catch(e) { /* proxy unreachable — fall back below */ }
+
+  // Fallback: generate locally from template
+  if (!docContent) {
+    statusText.textContent = 'Generating document locally...';
+    await new Promise(r => setTimeout(r, 800));
+    docContent = TEMPLATES[currentDoc](biz, cp, extra);
+  }
+
+  statusBar.classList.remove('visible');
+  btn.disabled = false;
+
+  document.getElementById('docOutput').textContent = docContent;
+  const result = document.getElementById('resultSection');
+  result.classList.add('visible');
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copyDoc() {
+  navigator.clipboard.writeText(document.getElementById('docOutput').textContent)
+    .then(() => { const b = document.querySelector('.btn-copy'); b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy', 2000); });
+}
+
+function downloadDoc() {
+  const text = document.getElementById('docOutput').textContent;
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${currentDoc}-${Date.now()}.txt`;
+  a.click();
+}
+</script>
+</body>
+</html>
