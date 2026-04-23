@@ -348,6 +348,13 @@ async function generateDoc() {
       const data = await resp.json();
       const output = data.output || data.result || data.response || '';
       if (output && output.length > 50) docContent = output;
+      // Store run_id so GP Dashboard can track it
+      const runId = data.id || data.run_id || data.execution_id;
+      if (runId) {
+        const runs = JSON.parse(localStorage.getItem('gp_linked_runs') || '[]');
+        runs.unshift({ runId, agentId: BOSS_AGENT, label: `Legal Doc: ${currentName} for ${biz}`, ts: Date.now() });
+        localStorage.setItem('gp_linked_runs', JSON.stringify(runs.slice(0, 20)));
+      }
     }
   } catch(e) { /* proxy unreachable — fall back below */ }
 
